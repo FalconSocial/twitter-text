@@ -1007,8 +1007,9 @@
   };
 
   twttr.txt.getUnicodeTextLength = function(text) {
-    var f = text.replace(twttr.txt.regexen.cjk_chars, '  ');
-    return f.replace(twttr.txt.regexen.non_bmp_code_pairs, ' ').length;
+    return text
+      .replace(twttr.txt.regexen.cjk_chars, '  ')
+      .replace(twttr.txt.regexen.non_bmp_code_pairs, ' ').length;
   };
 
   twttr.txt.convertUnicodeIndices = function(text, entities, indicesInUTF16) {
