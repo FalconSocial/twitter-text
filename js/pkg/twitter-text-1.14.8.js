@@ -1199,12 +1199,14 @@
 
   function weightForCodePoint (codePoint) {
     // { start, end, weight }
-    const inRange = config.ranges.find(range => {
+    var inRange = config.ranges.find(function (range) {
       return codePoint >= range.start && codePoint <= range.end;
     });
+
     if (!inRange) {
       return config.defaultWeight;
     }
+
     return inRange.weight;
   }
   // Returns the length of Tweet text with consideration to t.co URL replacement
