@@ -143,6 +143,18 @@ Official versions are kept in the `pkg/` directory.  To roll a new version, (ex.
 
 This will make a new file at `pkg/twitter-text-1.1.0.js`.
 
+## Falcon Release
+
+ 1. Create a PR and get it approve
+ 2. Merge the PR on github
+ 3. Checkout your local `master` branch and `pull` the latest changes.
+ 4. Make sure there are not uncommitted changed in your local workspace by running `git status`
+ 5. Doa version bump through NPM.
+    `npm version major|minot|patch`
+ 6. Push your new version commit and all related tags
+    `git push --follow-tags`
+ 7. Publish the new version to our [NPM Registry](https://github.com/FalconSocial/npm-registry)
+
 ## Reporting Bugs
 
 Please direct bug reports to the [twitter-text issue tracker on GitHub](https://github.com/twitter/twitter-text/issues)
