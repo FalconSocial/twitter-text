@@ -12,11 +12,6 @@
     "type": "git",
     "url": "https://github.com/twitter/twitter-text.git"
   },
-  "scripts": {
-    "test:conformance": "node ./scripts/dev && rake test:conformance",
-    "test": "node ./scripts/dev && rake test",
-    "dist": "node ./scripts/dist"
-  },
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-plugin-external-helpers": "^6.22.0",
