@@ -22,6 +22,7 @@ const extractUrlsWithIndices = function (text, options = DEFAULT_PROTOCOL_OPTION
     const protocol = RegExp.$4;
     const domain = RegExp.$5;
     const path = RegExp.$7;
+    const query = RegExp.$8;
     let endPosition = extractUrl.lastIndex;
     const startPosition = endPosition - url.length;
 
