@@ -1,7 +1,7 @@
 {
   "name": "@falconio/twitter-text",
   "description": "official twitter text linkification",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "main": "build/twitter-text.js",
   "files": [
     "build/twitter-text.js"
