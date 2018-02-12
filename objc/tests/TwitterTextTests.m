@@ -18,7 +18,7 @@
 
 - (void)testRemainingCharacterCountForLongTweet
 {
-    XCTAssertEqual([TwitterText remainingCharacterCount:@"12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567891" httpURLLength:23 httpsURLLength:23], -10);
+    XCTAssertEqual([TwitterText remainingCharacterCount:@"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" transformedURLLength:23], -10);
 }
 
 - (void)testHashtagBoundary
@@ -80,28 +80,6 @@
 - (void)testJapaneseTLDFollowedByASCIICharacters
 {
     NSString *text = @"テスト test.みんなabc";
-    NSArray *entities = [TwitterText entitiesInText:text];
-    XCTAssertEqual(entities.count, (NSUInteger)0);
-}
-
-- (void)testDomainFollowedByJapaneseCharacters
-{
-    NSString *text = @"example.comてすとですtwitter.みんなです.comcast.com";
-    NSArray *entities = [TwitterText entitiesInText:text];
-    XCTAssertEqual(entities.count, (NSUInteger)3);
-    if (entities.count >= 3) {
-        TwitterTextEntity *firstEntity = [entities objectAtIndex:0];
-        XCTAssertEqualObjects(NSStringFromRange(firstEntity.range), NSStringFromRange(NSMakeRange(0, 11)));
-        TwitterTextEntity *secondEntity = [entities objectAtIndex:1];
-        XCTAssertEqualObjects(NSStringFromRange(secondEntity.range), NSStringFromRange(NSMakeRange(16, 11)));
-        TwitterTextEntity *thirdEntity = [entities objectAtIndex:2];
-        XCTAssertEqualObjects(NSStringFromRange(thirdEntity.range), NSStringFromRange(NSMakeRange(30, 11)));
-    }
-}
-
-- (void)testURLDomainWithInvalidTLD
-{
-    NSString *text = @"test http://example.comだよね.comtest/hogehoge";
     NSArray *entities = [TwitterText entitiesInText:text];
     XCTAssertEqual(entities.count, (NSUInteger)0);
 }
@@ -503,7 +481,7 @@
     }
 }
 
-- (void)testValidate
+- (void)testWeightedTweetsCounting
 {
     NSString *fileName = [[[self class] conformanceRootDirectory] stringByAppendingPathComponent:@"validate.json"];
     NSData *data = [NSData dataWithContentsOfFile:fileName];
@@ -517,15 +495,22 @@
         return;
     }
 
+    [TwitterTextParser setDefaultParserWithConfiguration:[TwitterTextConfiguration configurationFromJSONResource:kTwitterTextParserConfigurationV2]];
     NSDictionary *tests = [rootDic objectForKey:@"tests"];
-    NSArray *lengths = [tests objectForKey:@"lengths"];
+    NSArray *lengths = [tests objectForKey:@"WeightedTweetsCounterTest"];
 
     for (NSDictionary *testCase in lengths) {
         NSString *text = [testCase objectForKey:@"text"];
         text = [self stringByParsingUnicodeEscapes:text];
-        NSUInteger expected = [[testCase objectForKey:@"expected"] unsignedIntegerValue];
-        NSUInteger len = [TwitterText tweetLength:text];
-        XCTAssertEqual(len, expected, @"Length should be the same");
+        NSDictionary *expected = [testCase objectForKey:@"expected"];
+        TwitterTextParseResults *results = [[TwitterTextParser defaultParser] parseTweet:text];
+        XCTAssertEqual(results.weightedLength, [expected[@"weightedLength"] integerValue], @"Length should be the same");
+        XCTAssertEqual(results.permillage, [expected[@"permillage"] integerValue], @"Permillage should be the same");
+        XCTAssertEqual(results.isValid, [expected[@"valid"] boolValue], @"Valid should be the same");
+        XCTAssertEqual(results.displayTextRange.location, [expected[@"displayRangeStart"] integerValue], @"Display text range start should be the same");
+        XCTAssertEqual(results.displayTextRange.length, [expected[@"displayRangeEnd"] integerValue] - [expected[@"displayRangeStart"] integerValue] + 1, @"Display text range length should be the same");
+        XCTAssertEqual(results.validDisplayTextRange.location, [expected[@"validRangeStart"] integerValue], @"Valid text range start should be the same");
+        XCTAssertEqual(results.validDisplayTextRange.length, [expected[@"validRangeEnd"] integerValue] - [expected[@"validRangeStart"] integerValue] + 1, @"Valid text range length should be the same");
     }
 }
 
@@ -603,6 +588,22 @@
             XCTFail(@"Matching count is different: %lu != %lu\n%@\n%@", (unsigned long)expected.count, (unsigned long)results.count, testCase, resultTexts);
         }
     }
+}
+
+- (void)testTwitterTextParserConfiguration
+{
+    NSString *configurationString = @"{\"version\": 1, \"maxWeightedTweetLength\": 280, \"scale\": 2, \"defaultWeight\": 1, \"transformedURLLength\": 23, \"ranges\": [{\"start\": 4352, \"end\": 4353, \"weight\": 2}]}";
+    TwitterTextConfiguration *configuration = [TwitterTextConfiguration configurationFromJSONString:configurationString];
+
+    XCTAssertEqual(1, configuration.version);
+    XCTAssertEqual(1, configuration.defaultWeight);
+    XCTAssertEqual(23, configuration.transformedURLLength);
+    XCTAssertEqual(280, configuration.maxWeightedTweetLength);
+    XCTAssertEqual(2, configuration.scale);
+    TwitterTextWeightedRange *weightedRange = configuration.ranges[0];
+    XCTAssertEqual(4352, weightedRange.range.location);
+    XCTAssertEqual(1, weightedRange.range.length);
+    XCTAssertEqual(2, weightedRange.weight);
 }
 
 - (NSString *)stringByParsingUnicodeEscapes:(NSString *)string

@@ -1,4 +1,8 @@
 test/conformance.js
 .DS_Store
 node_modules/
-twitter-text-dev.js
+build/
+package-lock.json
+src/configs/*.json
+src/configs/BUILD
+src/configs/README.md
